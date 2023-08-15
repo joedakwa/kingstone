@@ -1,22 +1,26 @@
 # Introduction
 
-A time-boxed security review of the **protocol name** protocol was done by **pashov**, with a focus on the security aspects of the application's smart contracts implementation.
+A time-boxed security review of the **TheVaultSales** protocol was done by **Joe Dakwa**, with a focus on the security aspects of the application's smart contracts implementation.
 
 # Disclaimer
 
 A smart contract security review can never verify the complete absence of vulnerabilities. This is a time, resource and expertise bound effort where I try to find as many vulnerabilities as possible. I can not guarantee 100% security after the review or even if the review will find any problems with your smart contracts. Subsequent security reviews, bug bounty programs and on-chain monitoring are strongly recommended.
 
-# About **pashov**
+# About **Joe Dakwa**
 
-Krum Pashov, or **pashov**, is an independent smart contract security researcher. Having found numerous security vulnerabilities in various protocols, he does his best to contribute to the blockchain ecosystem and its protocols by putting time and effort into security research & reviews. Check his previous work [here](https://github.com/pashov/audits) or reach out on Twitter [@pashovkrum](https://twitter.com/pashovkrum)
+I an independent smart contract security researcher. Having found numerous security vulnerabilities in various protocols, I does my best to contribute to the blockchain ecosystem and its protocols by putting time and effort into security research & reviews. 
 
-# About **ProtocolName**
+# About **The Vault Sales**
 
-_explanation what the protocol does, some architectural comments, technical documentation_
+The Vault Sales is a modern NFT Marketplace designed to allow individuals to freely trade their ERC721 NFTs.
 
 ## Observations
 
+Protocol is using 2 Open Zeppelin libraries, including the reentrancy guard and the interface for ERC721 implementations.
+
 ## Privileged Roles & Actors
+
+Deployer is owner of the contract and has the ability to change ownership and fee structure within the protocol.
 
 # Severity classification
 
@@ -42,8 +46,7 @@ _explanation what the protocol does, some architectural comments, technical docu
 
 The following smart contracts were in scope of the audit:
 
-- `SmartContractName`
-- `SmartContractName`
+- `VautSales`
 
 ---
 
