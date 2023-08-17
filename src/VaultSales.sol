@@ -5,9 +5,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
-// @audit no safeMath library is used
 
 contract TheVaultSales is ReentrancyGuard {
 
@@ -77,6 +76,7 @@ contract TheVaultSales is ReentrancyGuard {
     }
 // @audit BNB is suscetible to being paused at Admin level.
 // @audit function is payable, but contract doesnt have a way to withdraw funds, so ETH is stuck
+// @audit-issue use of memory and storage is not clear
     function purchaseItem(Item[] memory _item) external payable nonReentrant {
         uint _totalPrice;
         // @audit For loop could exceed gas limit?
@@ -127,6 +127,7 @@ contract TheVaultSales is ReentrancyGuard {
         require( item.seller == msg.sender, "Item does not belong to you");
 
         // delete listing
+        // @audit-issue does this really get deleted?
         delete Items[_item.nft][_item.tokenId];
        
         // emit Unlist event

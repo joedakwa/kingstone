@@ -1,0 +1,60 @@
+[G] Use unchecked in for loops 
+
+Use unchecked for arithmetic where you are sure it won't over or underflow, 
+saving gas costs for checks added from solidity v0.8.0.
+
+In the example below, 
+the variable i cannot overflow because of the condition i < length, 
+where length is defined as uint256. The maximum value i can reach is max(uint)-1. 
+Thus, incrementing i inside unchecked block is safe and consumes lesser gas.
+
+```
+function loop(uint256 length) public {
+	for (uint256 i = 0; i < length; ) {
+	    // do something
+	    unchecked {
+	        i++;
+	    }
+	}
+}
+```
+
+In function purchaseItem.
+
+-------------------
+
+[G] Use calldata instead of memory
+
+It is generally cheaper to load variables directly from calldata, rather than copying them to memory. Only use memory if the variable needs to be modified.
+
+    function listItem(Item memory _item) external nonReentrant 
+
+Change to:
+
+    function listItem(Item calldata _item) external nonReentrant 
+
+-------------------
+
+[G] Use custom errors where possible
+
+Instead of using strings for error messages (e.g., require(msg.sender == owner, “unauthorized”)), you can use custom errors to reduce both deployment and runtime gas costs. In addition, they are very convenient as you can easily pass dynamic information to them.
+
+Use custom errors where possible, as they are cheaper than revert.
+
+            require(item.seller != address(0), "item doesn't exist");
+
+Change to:
+
+List the error in the contract body:
+
+error ItemDoesNotExist(uint256 id);
+
+Then use it in the require statement:
+
+require(item.seller != address(0)) 
+
+revert ItemDoesNotExist(id);
+
+
+
+
