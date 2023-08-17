@@ -47,6 +47,8 @@ Deployer is owner of the contract and has the ability to change ownership and fe
 The following smart contracts were in scope of the audit:
 
 - `VautSales`
+- `Open Zeppelin Contracts`
+- `Interfaces`
 
 ---
 
