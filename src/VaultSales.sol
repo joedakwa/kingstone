@@ -121,6 +121,7 @@ contract TheVaultSales is ReentrancyGuard {
         }
     }
 // @audit Has nonreentrant modifier to prevent reentrancy attacks, but does this work?
+//@audit doesnt check if item has been sold
     function unListItem(Item memory _item) external nonReentrant {
         Item storage item = Items[_item.nft][_item.tokenId];
         require(item.seller != address(0), "item doesn't exist");
