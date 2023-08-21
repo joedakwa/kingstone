@@ -94,7 +94,7 @@ However, there is no explicit check to see if the seller of the NFT is the owner
 
 This means that anyone can list an NFT for sale, even if they don't own it.
 
-So when a malicious seller lists an item for sale, and a buer then calls purchaseItem, the malicious seller
+So when a malicious seller lists an item for sale, and a buyer then calls purchaseItem, the malicious seller
 will receive the funds, but the buyer will not receive the NFT.
 
 
