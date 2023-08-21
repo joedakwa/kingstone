@@ -69,6 +69,9 @@ The following smart contracts were in scope of the audit:
 | [M-05] | Block gas limit can be reached in purchaseItem | Medium | TBD |
 | [L-01] | Locking the contract forever is possible      | Low      | TBD    |
 | [L-02] | Use a two-step ownership transfer approach | Low | TBD |
+| [G-01] | Use unchecked in for loops | Gas | TBD |
+| [G-02] | Use calldata instead of memory | Gas | TBD |
+| [G-03] | Use custom errors where possible | Gas | TBD |
 
 # Detailed Findings
 
