@@ -38,10 +38,6 @@ Deployer is owner of the contract and has the ability to change ownership and fe
 
 # Security Assessment Summary
 
-**_review commit hash_ - [fffffffff](url)**
-
-**_fixes review commit hash_ - [fffffffff](url)**
-
 ### Scope
 
 The following smart contracts were in scope of the audit:
