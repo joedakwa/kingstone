@@ -73,7 +73,7 @@ The following smart contracts were in scope of the audit:
 
 ## Description
 
-During ```purchaseItem```, the payable modifier in Solidity is used to send BNB to the feeAccount.
+During function ```purchaseItem```, the payable modifier in Solidity is used to send BNB to the feeAccount.
 
 However, there is currently no way to withdraw BNB from the feeAccount.
 
@@ -95,21 +95,35 @@ In the ```feeAccount```, allow for a withdraw function. Also make sure the ```fe
     }
 ```
 
-# [C-01] BNB is stuck within the feeAccount forever.
+# [C-02] Malicious seller can steal funds from buyer by calling unlistItem
 
 ## Severity
 
-**Impact:** High, because native tokens sent to feeAccount will never be withdrawn
+**Impact:** High, because sellers can game the system at any point
 
-**Likelihood:** High, because there is no way for it to be withdrawn currently
+**Likelihood:** High, because there is no way to stop this currently
 
 ## Description
 
-During ```purchaseItem```, the payable modifier in Solidity is used to send BNB to the feeAccount.
+In function ```purchaseItem```, there is a call to transfer the proceeds of the sale to the seller.
 
-However, there is currently no way to withdraw BNB from the feeAccount.
+```solidity
+        //send remaining BNB to seller
+        payable(item.seller).transfer(_item[i].price * (1000-feePercent) / 1000);
+```
 
-This means that once BNB is sent to the ```feeAccount```, it will remain there indefinitely, and there is no automated way for the contract owner to retrieve those funds.
+However, the seller can call function ```unlistItem``` right after this, which will result in the buyer losing their funds, as
+```unlistItem``` deletes the NFT from the items array.
+
+This means that the seller has just received proceeds before the item has even been transferred to the buyer.
+
+The buyer will not receive the NFT, because unlistItem deletes the item from the items array.
+
 
 ## Recommendations
+
+Add a check to see if the item is still in the items array before transferring funds to the seller.
+
+I would recommend to change the sequence management and synchronization of the function flow between
+```purchaseItem```and ```unlistItem```. Allow for the automatic delisting of the NFT only after transferFrom has been successfully executed and the buyer has the NFT.
 
