@@ -63,14 +63,53 @@ The following smart contracts were in scope of the audit:
 
 # Detailed Findings
 
-# [S-01] VulnerabilityHeadline
+# [C-01] BNB is stuck within the feeAccount forever.
 
 ## Severity
 
-**Impact:**
+**Impact:** High, because native tokens sent to feeAccount will never be withdrawn
 
-**Likelihood:**
+**Likelihood:** High, because there is no way for it to be withdrawn currently
 
 ## Description
 
+During ```purchaseItem```, the payable modifier in Solidity is used to send BNB to the feeAccount.
+
+However, there is currently no way to withdraw BNB from the feeAccount.
+
+This means that once BNB is sent to the ```feeAccount```, it will remain there indefinitely, and there is no automated way for the contract owner to retrieve those funds.
+
 ## Recommendations
+
+Mitigation:
+
+In the ```feeAccount```, allow for a withdraw function. Also make sure the ```feeAccount``` has a payable receiver in order to receive the BNB.
+
+
+```solidity
+    function withdrawFees() public {
+        require(msg.sender == owner, "Not Owner");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No funds available for withdrawal");
+        payable(owner).transfer(balance);
+    }
+```
+
+# [C-01] BNB is stuck within the feeAccount forever.
+
+## Severity
+
+**Impact:** High, because native tokens sent to feeAccount will never be withdrawn
+
+**Likelihood:** High, because there is no way for it to be withdrawn currently
+
+## Description
+
+During ```purchaseItem```, the payable modifier in Solidity is used to send BNB to the feeAccount.
+
+However, there is currently no way to withdraw BNB from the feeAccount.
+
+This means that once BNB is sent to the ```feeAccount```, it will remain there indefinitely, and there is no automated way for the contract owner to retrieve those funds.
+
+## Recommendations
+
