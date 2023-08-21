@@ -56,10 +56,19 @@ The following smart contracts were in scope of the audit:
 
 | ID     | Title                   | Severity | Status |
 | ------ | ----------------------- | -------- | ------ |
-| [C-01] | Any Critical Title Here | Critical | TBD    |
-| [H-01] | Any High Title Here     | High     | TBD    |
-| [M-01] | Any Medium Title Here   | Medium   | TBD    |
-| [L-01] | Any Low Title Here      | Low      | TBD    |
+| [C-01] | BNB is stuck within the feeAccount forever | Critical | TBD    |
+| [C-02] | Malicious seller can steal funds from buyer by calling unlistItem | Critical | TBD |
+| [H-01] | The owner can change the fee structure at any time, resulting in losses for buyers and gains for sellers | Critical | TBD |
+| [H-02] | listItem doesn't check if the seller of the NFT is the owner of the NFT, which can lead to loss of funds for buyers     | High     | TBD    |
+| [H-03] | An attacker can frontrun the seller and list an NFT for a low price, and then purchase the same NFT | High | TBD |
+| [H-04] | Attacker can frontrun the seller and purchase the NFT before the seller's unlistItem transaction is processed | High | TBD |
+| [M-01] | Sellers can list the same NFTs consistently    | Medium   | TBD    |
+| [M-02] | BNB can be paused at Admin level causing failures in transactions | Medium | TBD |
+| [M-03] | Missing return values on BNB transfer | Medium | TBD |
+| [M-04] | transferFrom doesnt revert the transaction upon failure | Medium | TBD |
+| [M-05] | Block gas limit can be reached in purchaseItem | Medium | TBD |
+| [L-01] | Locking the contract forever is possible      | Low      | TBD    |
+| [L-02] | Use a two-step ownership transfer approach | Low | TBD |
 
 # Detailed Findings
 
