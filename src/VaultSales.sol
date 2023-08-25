@@ -23,16 +23,21 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     error NftNotApproved(address nft, uint256 id);
     error InsufficientFunds(uint256 sent, uint256 price);
     error FeeOutOfRange(uint256 fee);
+    error ItemTooLarge(uint256 itemLength);
+    error ContractIsPaused();
+    error ContractCurrentState(bool paused);
 
     // Variables
     address payable public feeAccount; // the account that receives fees
     uint public feePercent; // the fee percentage on sales 25 // 2.5%
+    bool public paused = false;
     // @audit explicitly define uint as uint256
     struct Item {
         address nft;
         uint tokenId;
         uint price;
         address seller;
+        bool unlisted;
     }
 
     // constract -> tokenId -> Item
@@ -72,6 +77,8 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     // @audit Has nonreentrant modifier to prevent reentrancy attacks, but not on the isApprovedForAll call
     // @audit Doesnt check if item is already listed
     function listItem(Item calldata _item) external nonReentrant {
+        if(paused) revert ContractIsPaused(); 
+
         require(_item.price > 0);
         if(_item.price == 0) revert PriceCannotBeZero(_item.nft, _item.tokenId); 
         IERC721 _nft = IERC721(_item.nft);
@@ -104,11 +111,15 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     // @audit function is payable, but contract doesnt have a way to withdraw funds, so ETH is stuck
     // @audit-issue use of memory and storage is not clear
     function purchaseItem(Item[] memory _item) external payable nonReentrant {
+        if(paused) revert ContractIsPaused(); 
+
+        if(_item.length > 30) revert ItemTooLarge(_item.length); 
+
         uint _totalPrice;
         // @audit For loop could exceed gas limit?
         for (uint256 i = 0; i < _item.length;) {
             Item storage item = Items[_item[i].nft][_item[i].tokenId];
-            if(item.seller == address(0)) revert ItemDoesNotExist(_item[i].nft, _item[i].tokenId); 
+            if(item.unlisted) revert ItemDoesNotExist(_item[i].nft, _item[i].tokenId); 
 
             
             _totalPrice += item.price;
@@ -127,7 +138,7 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
         // @audit what happens if this reverts? then the fee has already been paid to the marketplace.
         for (uint256 i = 0; i < _item.length;) {
             Item storage item = Items[_item[i].nft][_item[i].tokenId];
-            if(item.seller == address(0)) revert ItemDoesNotExist(_item[i].nft, _item[i].tokenId); 
+            if(item.unlisted) revert ItemDoesNotExist(_item[i].nft, _item[i].tokenId); 
 
             //send saleFee
             //@audit does this cause overflow or underflow?
@@ -169,10 +180,14 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     // @audit Has nonreentrant modifier to prevent reentrancy attacks, but does this work?
     //@audit doesnt check if item has been sold
     function unListItem(Item memory _item) external nonReentrant {
+        if(paused) revert ContractIsPaused(); 
+
         Item storage item = Items[_item.nft][_item.tokenId];
-        if(item.seller == address(0)) revert ItemDoesNotExist(_item.nft, _item.tokenId); 
+        if(item.unlisted) revert ItemDoesNotExist(_item.nft, _item.tokenId); 
 
         if(item.seller != msg.sender) revert NotNftOwner(_item.nft, _item.tokenId); 
+
+        item.unlisted = true;
 
 
         // delete listing
@@ -202,5 +217,10 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
         uint256 balance = address(this).balance;
         require(balance > 0, "No funds available for withdrawal");
         payable(msg.sender).transfer(balance);
+    }
+
+    function pauseContract(bool _state) public onlyOwner {
+        if(paused == _state) revert ContractCurrentState(paused);
+        paused = _state;
     }
 }
