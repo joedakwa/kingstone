@@ -8,13 +8,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
-
-// import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 
 contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
 
     using Address for address payable;
+    using SafeERC20 for IERC20;
 
     error ItemDoesNotExist(address nft, uint256 id);
     error ItemAlreadyListed(address nft, uint256 id);
@@ -26,11 +26,14 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     error ItemTooLarge(uint256 itemLength);
     error ContractIsPaused();
     error ContractCurrentState(bool paused);
+    error InsufficientBalance();
+
 
     // Variables
     address payable public feeAccount; // the account that receives fees
     uint public feePercent; // the fee percentage on sales 25 // 2.5%
     bool public paused = false;
+    address vaultToken;
     // @audit explicitly define uint as uint256
     struct Item {
         address nft;
@@ -38,6 +41,7 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
         uint price;
         address seller;
         bool unlisted;
+        bool defaultPayment; //true for bnb and false to use Vault Token 
     }
 
     // constract -> tokenId -> Item
@@ -115,25 +119,41 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
 
         if(_item.length > 30) revert ItemTooLarge(_item.length); 
 
-        uint _totalPrice;
+        uint _totalBNB = 0;
+        uint _totalVaultToken = 0;
         // @audit For loop could exceed gas limit?
         for (uint256 i = 0; i < _item.length;) {
             Item storage item = Items[_item[i].nft][_item[i].tokenId];
             if(item.unlisted) revert ItemDoesNotExist(_item[i].nft, _item[i].tokenId); 
 
+            if(item.defaultPayment){
+                _totalBNB += item.price;
+            } else{
+                _totalVaultToken += item.price;
+            }           
             
-            _totalPrice += item.price;
             unchecked {
                 i++;
             }
         }
 
-        if(msg.value < _totalPrice) revert InsufficientFunds(msg.value, _totalPrice); 
+        if(msg.value < _totalBNB) revert InsufficientFunds(msg.value, _totalBNB); 
+
+        if(_totalVaultToken > 0){
+
+            //check if user has approved contract to spend the required amount in vault
+            if(IERC20(vaultToken).allowance(msg.sender, address(this)) < _totalVaultToken) revert InsufficientFunds(msg.value, _totalVaultToken); 
+
+            //transfer theVaultToken to contract
+            IERC20(vaultToken).safeTransferFrom(msg.sender, address(this), _totalVaultToken);
+        }
 
         
         uint256 _fee = feePercent;
         //send Fee to Markeplace owner
-        feeAccount.sendValue(_totalPrice * _fee / 1000);
+        feeAccount.sendValue(_totalBNB * _fee / 1000);
+        if(_totalVaultToken > 0) IERC20(vaultToken).safeTransfer(feeAccount, _totalVaultToken * _fee / 1000);
+        
         // @audit For loop could exceed gas limit?
         // @audit what happens if this reverts? then the fee has already been paid to the marketplace.
         for (uint256 i = 0; i < _item.length;) {
@@ -154,7 +174,11 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
             _nft.safeTransferFrom(seller, msg.sender, id, bytes(""));
 
             //send payment to seller
-            payable(item.seller).sendValue(_item[i].price * (1000-feePercent) / 1000);
+            if(item.defaultPayment){
+                payable(item.seller).sendValue(_item[i].price * (1000-feePercent) / 1000);
+            }else{
+                IERC20(vaultToken).safeTransfer(item.seller, _item[i].price * (1000-feePercent) / 1000);
+            }
 
             //delete listing
             delete Items[_item[i].nft][_item[i].tokenId];
@@ -214,13 +238,25 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
 
 
     function withdrawFees() public onlyOwner  {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No funds available for withdrawal");
-        payable(msg.sender).transfer(balance);
+        uint256 BNBBalance = address(this).balance;
+        uint256 vaultBalance = IERC20(vaultToken).balanceOf(address(this));
+        if(BNBBalance == 0 && vaultBalance == 0) revert InsufficientBalance();
+
+        if(BNBBalance > 0){
+            payable(msg.sender).transfer(BNBBalance);
+        }
+
+        if(vaultBalance > 0){
+            IERC20(vaultToken).safeTransfer(msg.sender, vaultBalance);
+        }
     }
 
     function pauseContract(bool _state) public onlyOwner {
         if(paused == _state) revert ContractCurrentState(paused);
         paused = _state;
+    }
+
+    function setVaultTokenAddress(address _newAddress) public onlyOwner {
+        vaultToken = _newAddress;
     }
 }
