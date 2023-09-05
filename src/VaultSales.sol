@@ -222,5 +222,5 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
     function pauseContract(bool _state) public onlyOwner {
         if(paused == _state) revert ContractCurrentState(paused);
         paused = _state;
-    }
+    }  
 }

@@ -157,9 +157,12 @@ The nefarious actor now owns the NFT and the seller has lost the NFT.
 
 Mitigation:
 
-When the seller initiates the unlisting of an item, instead of immediately deleting the listing, you can mark it as "unlisted" in the contract state.
-Before allowing a purchase through the purchaseItem function, check if the item is marked as "unlisted." If it is, prevent the purchase.
-After a certain period of time or once the unlisting transaction is confirmed, you can allow the listing to be fully removed from the contract state.
+When the seller initiates the unlisting of an item, instead of immediately deleting the listing, 
+you can mark it as "unlisted" in the contract state.
+Before allowing a purchase through the purchaseItem function, check if the item is marked as "unlisted." 
+If it is, prevent the purchase.
+After a certain period of time or once the unlisting transaction is confirmed, 
+you can allow the listing to be fully removed from the contract state.
 
 
 -----------------------------
