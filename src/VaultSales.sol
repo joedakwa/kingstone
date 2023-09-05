@@ -256,3 +256,11 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
         paused = _state;
     }
 }
+
+function setVaultTokenAddress(address _newAddress) public onlyOwner {
+    // Additional validation, if needed
+    require(_newAddress != address(0), "Invalid token address");
+    require(IERC20(_newAddress).totalSupply() > 0, "Invalid ERC20 token");
+
+    vaultToken = _newAddress;
+}
