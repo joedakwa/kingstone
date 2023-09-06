@@ -9,9 +9,10 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 
-contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
+contract TheVaultSales is ReentrancyGuard, Ownable2Step, IERC721Receiver  {
 
     using Address for address payable;
     using SafeERC20 for IERC20;
@@ -251,16 +252,21 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step  {
         }
     }
 
+    function onERC721Received( address , address , uint256 , bytes calldata) public nonReentrant override returns (bytes4) {
+            return IERC721Receiver.onERC721Received.selector;
+    }
+
     function pauseContract(bool _state) public onlyOwner {
         if(paused == _state) revert ContractCurrentState(paused);
         paused = _state;
     }
+
+    function setVaultTokenAddress(address _newAddress) public onlyOwner {
+        // Additional validation, if needed
+        require(_newAddress != address(0), "Invalid token address");
+        require(IERC20(_newAddress).totalSupply() > 0, "Invalid ERC20 token");
+
+        vaultToken = _newAddress;
+    }
 }
 
-function setVaultTokenAddress(address _newAddress) public onlyOwner {
-    // Additional validation, if needed
-    require(_newAddress != address(0), "Invalid token address");
-    require(IERC20(_newAddress).totalSupply() > 0, "Invalid ERC20 token");
-
-    vaultToken = _newAddress;
-}
