@@ -244,7 +244,7 @@ contract TheVaultSales is ReentrancyGuard, Ownable2Step, IERC721Receiver  {
         if(BNBBalance == 0 && vaultBalance == 0) revert InsufficientBalance();
 
         if(BNBBalance > 0){
-            payable(msg.sender).transfer(BNBBalance);
+            feeAccount.sendValue(BNBBalance);
         }
 
         if(vaultBalance > 0){
